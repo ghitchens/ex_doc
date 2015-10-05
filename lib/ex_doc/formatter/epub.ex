@@ -77,7 +77,8 @@ defmodule ExDoc.Formatter.EPUB do
 
       config = Map.put(config, :title, file_name)
       extra_html =
-        Templates.extra_template(config, content)
+        config
+        |> Templates.extra_template(content)
         |> valid_xhtml_ids
 
       File.write!("#{output}/OEBPS/modules/#{file_name}.html", extra_html)
@@ -162,13 +163,15 @@ defmodule ExDoc.Formatter.EPUB do
   defp format_datetime do
     {{year, month, day}, {hour, min, sec}} = :calendar.universal_time()
     list = [year, month, day, hour, min, sec]
-    :io_lib.format("~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0BZ", list)
+    "~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0BZ"
+    |> :io_lib.format(list)
     |> IO.iodata_to_binary
   end
 
   defp generate_module_page(output, config, node) do
     content =
-      Templates.module_page(config, node)
+      config
+      |> Templates.module_page(node)
       |> valid_xhtml_ids
     File.write("#{output}/OEBPS/modules/#{node.id}.html", content)
   end
@@ -208,7 +211,8 @@ defmodule ExDoc.Formatter.EPUB do
     bin = <<u0::48, 4::4, u1::12, 2::2, u2::62>>
     <<u0::32, u1::16, u2::16, u3::16, u4::48>> = bin
 
-    Enum.map_join([<<u0::32>>, <<u1::16>>, <<u2::16>>, <<u3::16>>, <<u4::48>>], <<45>>, &(Base.encode16(&1, case: :lower)))
+    Enum.map_join([<<u0::32>>, <<u1::16>>, <<u2::16>>, <<u3::16>>, <<u4::48>>], <<45>>,
+                  &(Base.encode16(&1, case: :lower)))
   end
 
   defp valid_xhtml_ids(content) do
